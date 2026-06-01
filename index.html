@@ -768,10 +768,30 @@
         </div>
       </div>
     </div>
+    <!-- Visitor Counter Bar -->
+    <div style="background:#111;color:rgba(255,255,255,0.45);text-align:center;padding:10px 0;font-size:0.8rem;letter-spacing:0.04em;">
+      <i class="fa fa-eye me-1" style="color:rgba(255,255,255,0.3);"></i>
+      Site Visitors: <span id="visitorCount" style="color:rgba(255,255,255,0.7);font-weight:600;">820</span>
+    </div>
     <!-- Footer End -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+      // ── Visitor counter ──
+      (function () {
+        const BASE = 820;
+        const stored = parseInt(localStorage.getItem("oikos_visits") || BASE, 10);
+        const count = isNaN(stored) ? BASE : stored;
+        if (!sessionStorage.getItem("oikos_session_counted")) {
+          const next = count + 1;
+          localStorage.setItem("oikos_visits", next);
+          sessionStorage.setItem("oikos_session_counted", "1");
+          document.getElementById("visitorCount").textContent = next;
+        } else {
+          document.getElementById("visitorCount").textContent = count;
+        }
+      })();
+
       // ── Sticky nav shadow ──
       window.addEventListener("scroll", () => {
         document
