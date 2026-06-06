@@ -103,7 +103,6 @@ try {
     echo json_encode(['success' => true, 'message' => 'Your message has been sent successfully.']);
 
 } catch (Exception $e) {
-    error_log('PHPMailer error: ' . $mail->ErrorInfo);
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Could not send your message. Please try again later.']);
+    echo json_encode(['success' => false, 'message' => $mail->ErrorInfo]);
 }
