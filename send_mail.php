@@ -43,11 +43,11 @@ if ($errors) {
 }
 
 // ── SMTP configuration ──────────────────────────────────────────────────────
-define('SMTP_HOST',     'mail.oikoshealthcare.in');
+define('SMTP_HOST',     'sh016.hostgator.in');
 define('SMTP_PORT',     465);
 define('SMTP_USER',     'info@oikoshealthcare.in');
 define('SMTP_PASS',     'Oikoshealthcare_glansa@2026');        // ← replace with actual password
-define('MAIL_TO',       'hr@oikoshealthcare.in');
+define('MAIL_TO',       'info@oikoshealthcare.in');
 define('MAIL_TO_NAME',  'Oikos Healthcare');
 
 $mail = new PHPMailer(true);
