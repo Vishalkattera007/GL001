@@ -595,6 +595,20 @@
                 >
               </div>
 
+              <div class="form-group">
+                <label class="form-label-custom" for="cf-message">Message</label>
+                <textarea
+                  class="form-control-custom"
+                  id="cf-message"
+                  rows="5"
+                  placeholder="Write your message here…"
+                  style="resize:vertical"
+                ></textarea>
+                <span class="form-error-msg" id="err-message"
+                  >Message must be at least 10 characters.</span
+                >
+              </div>
+
               <button class="btn-submit" id="contactSubmit" type="button">
                 Send Message
                 <svg
@@ -842,10 +856,11 @@
       stats.forEach((s) => countIO.observe(s));
 
       // ── Contact Form Validation ──
-      const nameEl = document.getElementById("cf-name");
-      const emailEl = document.getElementById("cf-email");
+      const nameEl    = document.getElementById("cf-name");
+      const emailEl   = document.getElementById("cf-email");
       const subjectEl = document.getElementById("cf-subject");
       const enquiryEl = document.getElementById("cf-enquiry");
+      const messageEl = document.getElementById("cf-message");
 
       function setError(input, errId, show) {
         const err = document.getElementById(errId);
@@ -873,12 +888,18 @@
         setError(enquiryEl, "err-enquiry", !v);
         return !!v;
       }
+      function validateMessage() {
+        const v = messageEl.value.trim();
+        setError(messageEl, "err-message", v.length < 10);
+        return v.length >= 10;
+      }
 
       // Live validation on blur
       nameEl.addEventListener("blur", validateName);
       emailEl.addEventListener("blur", validateEmail);
       subjectEl.addEventListener("blur", validateSubject);
       enquiryEl.addEventListener("change", validateEnquiry);
+      messageEl.addEventListener("blur", validateMessage);
 
       // Clear error on input
       nameEl.addEventListener("input", () => {
@@ -890,35 +911,62 @@
       subjectEl.addEventListener("input", () => {
         if (subjectEl.classList.contains("is-error")) validateSubject();
       });
+      messageEl.addEventListener("input", () => {
+        if (messageEl.classList.contains("is-error")) validateMessage();
+      });
 
       // Submit
-      document.getElementById("contactSubmit").addEventListener("click", () => {
+      const submitBtn = document.getElementById("contactSubmit");
+      submitBtn.addEventListener("click", async () => {
         const ok = [
           validateName(),
           validateEmail(),
           validateSubject(),
           validateEnquiry(),
+          validateMessage(),
         ].every(Boolean);
         if (!ok) {
-          // Scroll to first error
           const firstErr = document.querySelector(".is-error");
           if (firstErr)
             firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
           return;
         }
-        // Show success modal
-        document.getElementById("modalEnquiryType").textContent =
-          enquiryEl.value;
-        document.getElementById("successModal").classList.add("show");
-        document.body.style.overflow = "hidden";
+
+        // Disable button while sending
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Sending…";
+
+        const body = new URLSearchParams({
+          name:    nameEl.value.trim(),
+          email:   emailEl.value.trim(),
+          subject: subjectEl.value.trim(),
+          enquiry: enquiryEl.value,
+          message: messageEl.value.trim(),
+        });
+
+        try {
+          const res  = await fetch("send_mail.php", { method: "POST", body });
+          const data = await res.json();
+          if (data.success) {
+            document.getElementById("modalEnquiryType").textContent = enquiryEl.value;
+            document.getElementById("successModal").classList.add("show");
+            document.body.style.overflow = "hidden";
+          } else {
+            alert("Error: " + (data.message || "Could not send message. Please try again."));
+          }
+        } catch {
+          alert("Network error. Please check your connection and try again.");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Send Message <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+        }
       });
 
       // Close modal
       function closeModal() {
         document.getElementById("successModal").classList.remove("show");
         document.body.style.overflow = "";
-        // Reset form
-        [nameEl, emailEl, subjectEl, enquiryEl].forEach((el) => {
+        [nameEl, emailEl, subjectEl, enquiryEl, messageEl].forEach((el) => {
           el.value = "";
           el.classList.remove("is-error");
         });
